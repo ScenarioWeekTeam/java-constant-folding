@@ -42,12 +42,36 @@ public class ConstantFolder
 	{
 		ClassGen cgen = new ClassGen(original);
 		ConstantPoolGen cpgen = cgen.getConstantPool();
+		
+		Method[] methods = gen.getMethods();
 
-		// Implement your optimization here
+		for (Method m : methods) {
+		    MethodGen mg = new MethodGen(m, cgen.getClassName(), cpgen);
+		    Method optimized = optimiseMethod(mg);
+		    
+		    m = optimized;
+		}
         
-		this.optimized = gen.getJavaClass();
+		this.optimized = cgen.getJavaClass();
+	}
+	
+	private void optimizeMethod(MethodGen mgen) {
+	    int optimizations = 1;
+	    InstructionList il = mgen.getInstructionList();
+	    
+	    while (optimizations > 0) {
+	        optimizations += simpleFolding(il);
+	    }
+	    
+	    Method m = mgen.getMethod();
+	    il.dispose();
+	    return m;
 	}
 
+	private void simpleFolding(InstructionList il) {
+	    
+	    
+	}
 	
 	public void write(String optimisedFilePath)
 	{
