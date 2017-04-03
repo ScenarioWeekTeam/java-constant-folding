@@ -60,6 +60,7 @@ public class ConstantFolder
 	    InstructionList il = mgen.getInstructionList();
 	    
 	    while (optimizations > 0) {
+	        optimizations = 0;
 	        optimizations += simpleFolding(il);
 	    }
 	    
