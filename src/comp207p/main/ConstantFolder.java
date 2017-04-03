@@ -55,7 +55,7 @@ public class ConstantFolder
 		this.optimized = cgen.getJavaClass();
 	}
 	
-	private void optimizeMethod(MethodGen mgen) {
+	private Method optimizeMethod(MethodGen mgen) {
 	    int optimizations = 1;
 	    InstructionList il = mgen.getInstructionList();
 	    
@@ -68,7 +68,7 @@ public class ConstantFolder
 	    return m;
 	}
 
-	private void simpleFolding(InstructionList il) {
+	private int simpleFolding(InstructionList il) {
 	    
 	    
 	}
