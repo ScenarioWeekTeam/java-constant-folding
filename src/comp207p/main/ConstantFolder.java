@@ -70,7 +70,7 @@ public class ConstantFolder
 	}
 
 	private int simpleFolding(MethodGen m, InstructionList il) {
-	    InstructionFinder f = new InstructionFinder(il):
+	    InstructionFinder f = new InstructionFinder(il);
 	    int counter = 0;
 	    
 	    for (Iterator iter = f.search("PushInstruction PushInstruction ArithmeticInstruction"); iter.hasNext();) {
@@ -78,9 +78,9 @@ public class ConstantFolder
 	        PushInstruction left = match[0].getInstruction();
 	        PushInstruction right = match[1].getInstruction();
 	        ArithmeticInstruction op = match[2].getInstruction();
-	        if (!(a instanceof ConstantPushInstruction))
+	        if (!(left instanceof ConstantPushInstruction))
 	            continue;
-	        if (!(b instanceof ConstantPushInstruction))
+	        if (!(right instanceof ConstantPushInstruction))
 	            continue;
 	        Number a = left.getValue();
 	        Number b = right.getValue();
@@ -143,19 +143,19 @@ public class ConstantFolder
 	        folded = new LDC(cpgen.addInteger(a.intValue() - b.intValue()));
 	    }
 	    else if (op instanceof LADD) {
-	        folded = new LDC2_w(cpgen.addLong(a.longValue() + b.longValue()));
+	        folded = new LDC2_W(cpgen.addLong(a.longValue() + b.longValue()));
 	    }
 	    else if (op instanceof LDIV) {
-	        folded = new LDC2_w(cpgen.addLong(a.longValue() / b.longValue()));
+	        folded = new LDC2_W(cpgen.addLong(a.longValue() / b.longValue()));
 	    }
 	    else if (op instanceof LMUL) {
-	        folded = new LDC2_w(cpgen.addLong(a.longValue() * b.longValue()));
+	        folded = new LDC2_W(cpgen.addLong(a.longValue() * b.longValue()));
 	    }
 	    else if (op instanceof LREM) {
-	        folded = new LDC2_w(cpgen.addLong(a.longValue() % b.longValue()));
+	        folded = new LDC2_W(cpgen.addLong(a.longValue() % b.longValue()));
 	    }
 	    else if (op instanceof LSUB) {
-	        folded = new LDC2_w(cpgen.addLong(a.longValue() - b.longValue()));
+	        folded = new LDC2_W(cpgen.addLong(a.longValue() - b.longValue()));
 	    }
 	    
 	    return folded;
