@@ -112,6 +112,51 @@ public class ConstantFolder
 	    else if (op instanceof DSUB) {
 	        folded = new LDC2_W(cpgen.addDouble(a.doubleValue() - b.doubleValue()));
 	    }
+	    else if (op instanceof FADD) {
+	        folded = new LDC(cpgen.addFloat(a.floatValue() + b.floatValue()));
+	    }
+	    else if (op instanceof FDIV) {
+	        folded = new LDC(cpgen.addFloat(a.floatValue() / b.floatValue()));
+	    }
+	    else if (op instanceof FMUL) {
+	        folded = new LDC(cpgen.addFloat(a.floatValue() * b.floatValue()));
+	    }
+	    else if (op instanceof FREM) {
+	        folded = new LDC(cpgen.addFloat(a.floatValue() % b.floatValue()));
+	    }
+	    else if (op instanceof FSUB) {
+	        folded = new LDC(cpgen.addFloat(a.floatValue() - b.floatValue()));
+	    }
+	    else if (op instanceof IADD) {
+	        folded = new LDC(cpgen.addInteger(a.intValue() + b.intValue()));
+	    }
+	    else if (op instanceof IDIV) {
+	        folded = new LDC(cpgen.addInteger(a.intValue() / b.intValue()));
+	    }
+	    else if (op instanceof IMUL) {
+	        folded = new LDC(cpgen.addInteger(a.intValue() * b.intValue()));
+	    }
+	    else if (op instanceof IREM) {
+	        folded = new LDC(cpgen.addInteger(a.intValue() % b.intValue()));
+	    }
+	    else if (op instanceof ISUB) {
+	        folded = new LDC(cpgen.addInteger(a.intValue() - b.intValue()));
+	    }
+	    else if (op instanceof LADD) {
+	        folded = new LDC2_w(cpgen.addLong(a.longValue() + b.longValue()));
+	    }
+	    else if (op instanceof LDIV) {
+	        folded = new LDC2_w(cpgen.addLong(a.longValue() / b.longValue()));
+	    }
+	    else if (op instanceof LMUL) {
+	        folded = new LDC2_w(cpgen.addLong(a.longValue() * b.longValue()));
+	    }
+	    else if (op instanceof LREM) {
+	        folded = new LDC2_w(cpgen.addLong(a.longValue() % b.longValue()));
+	    }
+	    else if (op instanceof LSUB) {
+	        folded = new LDC2_w(cpgen.addLong(a.longValue() - b.longValue()));
+	    }
 	    
 	    return folded;
 	}
