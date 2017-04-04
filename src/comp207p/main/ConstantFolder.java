@@ -13,6 +13,7 @@ import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
+import org.apache.bcel.generic.*;
 import org.apache.bcel.util.InstructionFinder;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.TargetLostException;
@@ -47,7 +48,7 @@ public class ConstantFolder
 
 		for (Method m : methods) {
 		    MethodGen mg = new MethodGen(m, cgen.getClassName(), cpgen);
-		    Method optimized = optimiseMethod(mg);
+		    Method optimized = optimizeMethod(mg);
 		    
 		    m = optimized;
 		}
@@ -75,9 +76,9 @@ public class ConstantFolder
 	    
 	    for (Iterator iter = f.search("PushInstruction PushInstruction ArithmeticInstruction"); iter.hasNext();) {
 	        InstructionHandle[] match = (InstructionHandle[]) iter.next();
-	        PushInstruction left = match[0].getInstruction();
-	        PushInstruction right = match[1].getInstruction();
-	        ArithmeticInstruction op = match[2].getInstruction();
+	        Instruction left = match[0].getInstruction();
+	        Instruction right = match[1].getInstruction();
+	        Instruction op = match[2].getInstruction();
 	        if (!(left instanceof ConstantPushInstruction))
 	            continue;
 	        if (!(right instanceof ConstantPushInstruction))
