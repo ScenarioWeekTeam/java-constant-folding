@@ -61,7 +61,7 @@ public class ConstantFolder
 	    
 	    while (optimizations > 0) {
 	        optimizations = 0;
-	        optimizations += simpleFolding(il);
+	        optimizations += simpleFolding(mgen, il);
 	    }
 	    
 	    Method m = mgen.getMethod();
@@ -69,7 +69,7 @@ public class ConstantFolder
 	    return m;
 	}
 
-	private int simpleFolding(InstructionList il) {
+	private int simpleFolding(MethodGen m, InstructionList il) {
 	    InstructionFinder f = new InstructionFinder(il):
 	    int counter = 0;
 	    
@@ -84,7 +84,7 @@ public class ConstantFolder
 	            continue;
 	        Number a = left.getValue();
 	        Number b = right.getValue();
-	        Instruction folded = foldOperation(a, b, op);
+	        Instruction folded = foldOperation(m, a, b, op);
 	        match[0].setInstruction(folded);
 	        il.delete(match[1], match[2]);
 	        counter++;
@@ -93,8 +93,27 @@ public class ConstantFolder
 	    return counter;
 	}
 	
-	private Instruction foldOperation(Number a, Number b,  Instruction op) {
-	
+	private Instruction foldOperation(MethodGen m, Number a, Number b,  Instruction op) {
+	    ConstantPoolGen cpgen = m.getConstantPool();
+	    Instruction folded = null;
+	    
+	    if (op instanceof DADD) {
+	        folded = new LDC2_W(cpgen.addDouble(a.doubleValue() + b.doubleValue()));
+	    }
+	    else if (op instanceof DDIV) {
+	        folded = new LDC2_W(cpgen.addDouble(a.doubleValue() / b.doubleValue()));
+	    }
+	    else if (op instanceof DMUL) {
+	        folded = new LDC2_W(cpgen.addDouble(a.doubleValue() * b.doubleValue()));
+	    }
+	    else if (op instanceof DREM) {
+	        folded = new LDC2_W(cpgen.addDouble(a.doubleValue() % b.doubleValue()));
+	    }
+	    else if (op instanceof DSUB) {
+	        folded = new LDC2_W(cpgen.addDouble(a.doubleValue() - b.doubleValue()));
+	    }
+	    
+	    return folded;
 	}
 	
 	public void write(String optimisedFilePath)
