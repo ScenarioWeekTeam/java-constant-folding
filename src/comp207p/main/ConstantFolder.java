@@ -70,8 +70,31 @@ public class ConstantFolder
 	}
 
 	private int simpleFolding(InstructionList il) {
+	    InstructionFinder f = new InstructionFinder(il):
+	    int counter = 0;
 	    
+	    for (Iterator iter = f.search("PushInstruction PushInstruction ArithmeticInstruction"); iter.hasNext();) {
+	        InstructionHandle[] match = (InstructionHandle[]) iter.next();
+	        PushInstruction left = match[0].getInstruction();
+	        PushInstruction right = match[1].getInstruction();
+	        ArithmeticInstruction op = match[2].getInstruction();
+	        if (!(a instanceof ConstantPushInstruction))
+	            continue;
+	        if (!(b instanceof ConstantPushInstruction))
+	            continue;
+	        Number a = left.getValue();
+	        Number b = right.getValue();
+	        Instruction folded = foldOperation(a, b, op);
+	        match[0].setInstruction(folded);
+	        il.delete(match[1], match[2]);
+	        counter++;
+	    }
 	    
+	    return counter;
+	}
+	
+	private Instruction foldOperation(Number a, Number b,  Instruction op) {
+	
 	}
 	
 	public void write(String optimisedFilePath)
