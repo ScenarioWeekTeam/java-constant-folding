@@ -76,18 +76,26 @@ public class ConstantFolder
 	    
 	    for (Iterator iter = f.search("PushInstruction PushInstruction ArithmeticInstruction"); iter.hasNext();) {
 	        InstructionHandle[] match = (InstructionHandle[]) iter.next();
-	        Instruction left = match[0].getInstruction();
-	        Instruction right = match[1].getInstruction();
+	        PushInstruction left = (PushInstruction)match[0].getInstruction();
+	        PushInstruction right = (PushInstruction)match[1].getInstruction();
 	        Instruction op = match[2].getInstruction();
 	        if (!(left instanceof ConstantPushInstruction))
 	            continue;
 	        if (!(right instanceof ConstantPushInstruction))
 	            continue;
-	        Number a = left.getValue();
-	        Number b = right.getValue();
+	        ConstantPushInstruction l = (ConstantPushInstruction)left;
+	        ConstantPushInstruction r = (ConstantPushInstruction)right;
+	        Number a = l.getValue();
+	        Number b = r.getValue();
 	        Instruction folded = foldOperation(m, a, b, op);
 	        match[0].setInstruction(folded);
-	        il.delete(match[1], match[2]);
+	        try {
+	            il.delete(match[1], match[2]);
+	        }
+	        catch (TargetLostException e) {
+	        
+	        }
+	        
 	        counter++;
 	    }
 	    
