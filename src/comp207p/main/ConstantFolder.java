@@ -30,6 +30,7 @@ public class ConstantFolder
 
 	public ConstantFolder(String classFilePath)
 	{
+	    System.out.println("Optimising: " + classFilePath);
 		try{
 			this.parser = new ClassParser(classFilePath);
 			this.original = this.parser.parse();
@@ -44,13 +45,13 @@ public class ConstantFolder
 		ClassGen cgen = new ClassGen(original);
 		ConstantPoolGen cpgen = cgen.getConstantPool();
 		
-		Method[] methods = gen.getMethods();
+		Method[] methods = cgen.getMethods();
 
-		for (Method m : methods) {
-		    MethodGen mg = new MethodGen(m, cgen.getClassName(), cpgen);
+		for (int i = 0; i < methods.length; i++) {
+		    MethodGen mg = new MethodGen(methods[i], cgen.getClassName(), cpgen);
 		    Method optimized = optimizeMethod(mg);
 		    
-		    m = optimized;
+		    cgen.replaceMethod(methods[i], optimized);
 		}
         
 		this.optimized = cgen.getJavaClass();
@@ -71,29 +72,97 @@ public class ConstantFolder
 	}
 
 	private int simpleFolding(MethodGen m, InstructionList il) {
+	    ConstantPoolGen cpgen = m.getConstantPool();
 	    InstructionFinder f = new InstructionFinder(il);
 	    int counter = 0;
 	    
 	    for (Iterator iter = f.search("PushInstruction PushInstruction ArithmeticInstruction"); iter.hasNext();) {
+	        System.out.println("Match found");
 	        InstructionHandle[] match = (InstructionHandle[]) iter.next();
 	        PushInstruction left = (PushInstruction)match[0].getInstruction();
 	        PushInstruction right = (PushInstruction)match[1].getInstruction();
 	        Instruction op = match[2].getInstruction();
-	        if (!(left instanceof ConstantPushInstruction))
+	        Number a;
+	        Number b;
+	        
+	        if (left instanceof LDC) {
+	            LDC l = (LDC)left;
+	            Object v = l.getValue(cpgen);
+	            if (v instanceof Number) {
+	                a = (Number) v;
+	            }
+	            else {
+	                continue;
+	            }
+	        }
+	        else if (left instanceof LDC2_W) {
+	            LDC2_W l = (LDC2_W)left;
+	            Object v = l.getValue(cpgen);
+	            if (v instanceof Number) {
+	                a = (Number) v;
+	            }
+	            else {
+	                continue;
+	            }
+	        }
+	        else if (left instanceof ConstantPushInstruction) {
+	            ConstantPushInstruction l = (ConstantPushInstruction)left;
+	            Object v = l.getValue();
+	            if (v instanceof Number) {
+	                a = (Number) v;
+	            }
+	            else {
+	                continue;
+	            }
+	        }
+	        else {
 	            continue;
-	        if (!(right instanceof ConstantPushInstruction))
+	        }
+	        
+	        if (right instanceof LDC) {
+	            LDC r = (LDC)right;
+	            Object v = r.getValue(cpgen);
+	            if (v instanceof Number) {
+	                b = (Number) v;
+	            }
+	            else {
+	                continue;
+	            }
+	        }
+	        else if (right instanceof LDC2_W) {
+	            LDC2_W r = (LDC2_W)right;
+	            Object v = r.getValue(cpgen);
+	            if (v instanceof Number) {
+	                b = (Number) v;
+	            }
+	            else {
+	                continue;
+	            }
+	        }
+	        else if (right instanceof ConstantPushInstruction) {
+	            ConstantPushInstruction r = (ConstantPushInstruction)right;
+	            Object v = r.getValue();
+	            if (v instanceof Number) {
+	                b = (Number) v;
+	            }
+	            else {
+	                continue;
+	            }
+	        }
+	        else {
 	            continue;
-	        ConstantPushInstruction l = (ConstantPushInstruction)left;
-	        ConstantPushInstruction r = (ConstantPushInstruction)right;
-	        Number a = l.getValue();
-	        Number b = r.getValue();
+	        }
+	        
+	        System.out.println("New instruction being added");
 	        Instruction folded = foldOperation(m, a, b, op);
+	        System.out.println(folded.toString());
 	        match[0].setInstruction(folded);
 	        try {
 	            il.delete(match[1], match[2]);
 	        }
 	        catch (TargetLostException e) {
-	        
+	            System.out.println("Target lost");
+	            continue;
 	        }
 	        
 	        counter++;
