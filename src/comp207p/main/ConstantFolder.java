@@ -85,71 +85,10 @@ public class ConstantFolder
 	        Number a;
 	        Number b;
 	        
-	        if (left instanceof LDC) {
-	            LDC l = (LDC)left;
-	            Object v = l.getValue(cpgen);
-	            if (v instanceof Number) {
-	                a = (Number) v;
-	            }
-	            else {
-	                continue;
-	            }
-	        }
-	        else if (left instanceof LDC2_W) {
-	            LDC2_W l = (LDC2_W)left;
-	            Object v = l.getValue(cpgen);
-	            if (v instanceof Number) {
-	                a = (Number) v;
-	            }
-	            else {
-	                continue;
-	            }
-	        }
-	        else if (left instanceof ConstantPushInstruction) {
-	            ConstantPushInstruction l = (ConstantPushInstruction)left;
-	            Object v = l.getValue();
-	            if (v instanceof Number) {
-	                a = (Number) v;
-	            }
-	            else {
-	                continue;
-	            }
-	        }
-	        else {
-	            continue;
-	        }
+	        a = getConstant(left, cpgen);
+	        b = getConstant(right, cpgen);
 	        
-	        if (right instanceof LDC) {
-	            LDC r = (LDC)right;
-	            Object v = r.getValue(cpgen);
-	            if (v instanceof Number) {
-	                b = (Number) v;
-	            }
-	            else {
-	                continue;
-	            }
-	        }
-	        else if (right instanceof LDC2_W) {
-	            LDC2_W r = (LDC2_W)right;
-	            Object v = r.getValue(cpgen);
-	            if (v instanceof Number) {
-	                b = (Number) v;
-	            }
-	            else {
-	                continue;
-	            }
-	        }
-	        else if (right instanceof ConstantPushInstruction) {
-	            ConstantPushInstruction r = (ConstantPushInstruction)right;
-	            Object v = r.getValue();
-	            if (v instanceof Number) {
-	                b = (Number) v;
-	            }
-	            else {
-	                continue;
-	            }
-	        }
-	        else {
+	        if (a == null || b == null) {
 	            continue;
 	        }
 	        
@@ -171,6 +110,45 @@ public class ConstantFolder
 	    return counter;
 	}
 	
+	private Number getConstant(PushInstruction input, ConstantPoolGen cpgen) {
+	    Number value = null;
+	    if (input instanceof LDC) {
+	        LDC i = (LDC)input;
+	        Object v = i.getValue(cpgen);
+	        if (v instanceof Number) {
+	           value = (Number) v;
+	        }
+	        else {
+	           return null;
+	        }
+	    }
+	    else if (input instanceof LDC2_W) {
+	        LDC2_W i = (LDC2_W)input;
+	        Object v = i.getValue(cpgen);
+	        if (v instanceof Number) {
+	            value = (Number) v;
+	        }
+	        else {
+	            return null;
+	        }
+	    }
+	    else if (input instanceof ConstantPushInstruction) {
+	        ConstantPushInstruction i = (ConstantPushInstruction)input;
+	        Object v = i.getValue();
+	        if (v instanceof Number) {
+	            value = (Number) v;
+	        }
+	        else {
+	            return null;
+	        }
+	    }
+	    else {
+	        return null;
+	    }
+	    
+	    return value;
+	}
+	 
 	private Instruction foldOperation(MethodGen m, Number a, Number b,  Instruction op) {
 	    ConstantPoolGen cpgen = m.getConstantPool();
 	    Instruction folded = null;
