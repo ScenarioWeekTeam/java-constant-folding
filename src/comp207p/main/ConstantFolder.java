@@ -52,9 +52,13 @@ public class ConstantFolder
 		    Method optimized = optimizeMethod(mg);
 		    
 		    cgen.replaceMethod(methods[i], optimized);
+		    methods[i] = optimized;
 		}
         
-		this.optimized = cgen.getJavaClass();
+        this.gen.setMethods(methods);
+        this.gen.setConstantPool(cpgen);
+        this.gen.setMajor(50);
+		this.optimized = gen.getJavaClass();
 	}
 	
 	private Method optimizeMethod(MethodGen mgen) {
@@ -64,13 +68,42 @@ public class ConstantFolder
 	    while (optimizations > 0) {
 	        optimizations = 0;
 	        optimizations += simpleFolding(mgen, il);
+	        optimizations += propagateConstantVariables(mgen, il);
+	//        optimizations += removePushes(mgen, il);
 	    }
 	    
+	    mgen.setMaxStack();
+	    mgen.setMaxLocals();
 	    Method m = mgen.getMethod();
 	    il.dispose();
 	    return m;
 	}
 
+    private int removePushes(MethodGen m, InstructionList il) {
+        ConstantPoolGen cpgen = m.getConstantPool();
+	    InstructionFinder f = new InstructionFinder(il);
+	    int counter = 0;
+	    
+	    for (Iterator iter = f.search("(SIPUSH|BIPUSH)"); iter.hasNext();) {
+	        InstructionHandle[] match = (InstructionHandle[]) iter.next();
+	        PushInstruction i = (PushInstruction)match[0].getInstruction();
+	        Number v = getConstant(i, cpgen);
+	        if (v == null) {
+	            continue;
+	        }
+	         
+	        if (i instanceof SIPUSH) {
+	            match[0].setInstruction(new LDC(cpgen.addInteger((int)v.shortValue())));
+	        }
+	        else if (i instanceof BIPUSH) {
+	            match[0].setInstruction(new LDC(cpgen.addInteger((int)v.byteValue())));
+	        }
+	        counter++;
+	    }
+	    
+	    return counter;
+    
+    }
 	private int simpleFolding(MethodGen m, InstructionList il) {
 	    ConstantPoolGen cpgen = m.getConstantPool();
 	    InstructionFinder f = new InstructionFinder(il);
@@ -105,6 +138,63 @@ public class ConstantFolder
 	        }
 	        
 	        counter++;
+	    }
+	    
+	    return counter;
+	}
+	
+	private int propagateConstantVariables(MethodGen m, InstructionList il) {
+	    ConstantPoolGen cpgen = m.getConstantPool();
+	    InstructionFinder f = new InstructionFinder(il);
+	    int counter = 0;
+	    
+	    for (Iterator iter = f.search("PushInstruction StoreInstruction"); iter.hasNext();) {
+	        System.out.println("Match found");
+	        InstructionHandle[] match = (InstructionHandle[])iter.next();
+	        PushInstruction v = (PushInstruction)match[0].getInstruction();
+	        StoreInstruction s = (StoreInstruction)match[1].getInstruction();
+	        int index;
+	        
+	        Number value = getConstant(v, cpgen);
+	        
+	        if (value == null) {
+	            continue;
+	        }
+	        
+	        /*if (v instanceof SIPUSH) {
+	            v = new LDC(cpgen.addInteger((int)value.shortValue()));
+	        }
+	        else if (v instanceof BIPUSH) {
+	            v = new LDC(cpgen.addInteger((int)value.byteValue()));
+	        } */
+	        
+	        if ((s instanceof DSTORE) || (s instanceof FSTORE) || (s instanceof ISTORE) || (s instanceof LSTORE)) {
+	            index = s.getIndex();
+	        }
+	        else {
+	            continue;
+	        }
+	        
+	        InstructionHandle i = match[1].getNext();
+	        while (i != null ) {
+	            Instruction instruction = i.getInstruction();
+	            if (instruction instanceof LoadInstruction) {
+	                LoadInstruction load = (LoadInstruction)instruction;
+	                if (load.getIndex() == index) {
+	                    System.out.println("Adding new instruction");
+	                    i.setInstruction((Instruction)v);
+	                    System.out.println(v.toString());
+	                    counter++;
+	                }
+	            }
+	            else if (instruction instanceof StoreInstruction) {
+	                StoreInstruction store = (StoreInstruction)instruction;
+	                if (store.getIndex() == index) {
+	                    break;
+	                }
+	            }
+	            i = i.getNext();
+	        }
 	    }
 	    
 	    return counter;
