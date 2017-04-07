@@ -79,31 +79,6 @@ public class ConstantFolder
 	    return m;
 	}
 
-    private int removePushes(MethodGen m, InstructionList il) {
-        ConstantPoolGen cpgen = m.getConstantPool();
-	    InstructionFinder f = new InstructionFinder(il);
-	    int counter = 0;
-	    
-	    for (Iterator iter = f.search("(SIPUSH|BIPUSH)"); iter.hasNext();) {
-	        InstructionHandle[] match = (InstructionHandle[]) iter.next();
-	        PushInstruction i = (PushInstruction)match[0].getInstruction();
-	        Number v = getConstant(i, cpgen);
-	        if (v == null) {
-	            continue;
-	        }
-	         
-	        if (i instanceof SIPUSH) {
-	            match[0].setInstruction(new LDC(cpgen.addInteger((int)v.shortValue())));
-	        }
-	        else if (i instanceof BIPUSH) {
-	            match[0].setInstruction(new LDC(cpgen.addInteger((int)v.byteValue())));
-	        }
-	        counter++;
-	    }
-	    
-	    return counter;
-    
-    }
 	private int simpleFolding(MethodGen m, InstructionList il) {
 	    ConstantPoolGen cpgen = m.getConstantPool();
 	    InstructionFinder f = new InstructionFinder(il);
