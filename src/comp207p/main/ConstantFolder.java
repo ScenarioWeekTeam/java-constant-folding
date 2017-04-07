@@ -253,14 +253,16 @@ public class ConstantFolder
 	        InstructionHandle i = match[1].getNext();
 	        while (i != null ) {
 	            Instruction instruction = i.getInstruction();
-	            int skip = i.getPosition();
 	            if (i.hasTargeters()) {
-	                break;
-	            }
-	            
-	            if (skip > i.getPosition()) {
-	                while (i.getNext().getPosition() < skip) {
-	                    i = i.getNext();
+	                boolean skip = false;
+	                for (InstructionTargeter targeter : i.getTargeters()) {
+	                    if (targeter instanceof GotoInstruction) {
+	                        skip = true;
+	                        break;
+	                    }
+	                }
+	                if (skip) {
+	                    break;
 	                }
 	            }
 	            
