@@ -128,6 +128,56 @@ public class ConstantFolder
 	    return counter;
     }
     
+    private int foldConversions(MethodGen m, InstructionList il) {
+        ConstantPoolGen cpgen = m.getConstantPool();
+	    InstructionFinder f = new InstructionFinder(il);
+	    int counter = 0;
+	    
+	    for (Iterator iter = f.search("PushInstruction ConversionInstruction"); iter.hasNext();) {
+	        System.out.println("Match found");
+	        InstructionHandle[] match = (InstructionHandle[]) iter.next();
+	        PushInstruction value = (PushInstruction)match[0].getInstruction();
+	        ConversionInstruction op = (ConversionInstruction)match[0].getInstruction();
+	        
+	        Number v = getConstant(value, cpgen);
+	        
+	        if (v == null) {
+	            continue;
+	        }
+	        
+	        System.out.println("New instruction being added");
+	        Instruction folded = null;
+	        if (op instanceof D2I || op instanceof F2I || op instanceof L2I) {
+	            folded = new LDC(cpgen.addInteger(v.intValue()));
+	        }
+	        else if (op instanceof D2L || op instanceof F2L || op instanceof I2L) {
+	            folded = new LDC2_W(cpgen.addLong(v.longValue()));
+	        }
+	        else if (op instanceof I2F || op instanceof D2F || op instanceof L2F) {
+	            folded = new LDC(cpgen.addFloat(v.floatValue()));
+	        }
+	        else if (op instanceof I2D || op instanceof F2D || op instanceof L2D) {
+	            folded = new LDC2_W(cpgen.addDouble(v.doubleValue()));
+	        }
+	        else {
+	            continue;
+	        }
+	        
+	        System.out.println(folded.toString());
+	        match[0].setInstruction(folded);
+	        try {
+	            il.delete(match[1]);
+	        }
+	        catch (TargetLostException e) {
+	            System.out.println("Target lost");
+	            continue;
+	        }
+	        
+	        counter++;
+	    }
+	    return counter;
+    }
+    
 	private int simpleFolding(MethodGen m, InstructionList il) {
 	    ConstantPoolGen cpgen = m.getConstantPool();
 	    InstructionFinder f = new InstructionFinder(il);
