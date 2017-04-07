@@ -79,6 +79,80 @@ public class ConstantFolder
 	    il.dispose();
 	    return m;
 	}
+	
+	private int foldComparisons(MethodGen m, InstructionList il) {
+	    ConstantPoolGen cpgen = m.getConstantPool();
+	    InstructionFinder f = new InstructionFinder(il);
+	    int counter = 0;
+	    
+	    for (Iterator iter = f.search("PushInstruction PushInstruction (LCMP|DCMPG|DCMPL|FCMPG|FCMPL)"); iter.hasNext();) {
+	        System.out.println("Match found");
+	        InstructionHandle[] match = (InstructionHandle[]) iter.next();
+	        PushInstruction left = (PushInstruction)match[0].getInstruction();
+	        PushInstruction right = (PushInstruction)match[1].getInstruction();
+	        Instruction op = match[2].getInstruction();
+	        Number a;
+	        Number b;
+	        
+	        a = getConstant(left, cpgen);
+	        b = getConstant(right, cpgen);
+	        
+	        if (a == null || b == null) {
+	            continue;
+	        }
+	        
+	        System.out.println("New instruction being added");
+	        Instruction folded = null;
+	        
+	        if (op instanceof LCMP) {
+	            long alpha = a.longValue();
+	            long beta = b.longValue();
+	            if (alpha < beta) {
+	                folded = new ICONST(-1);
+	            }
+	            else if (alpha == beta) {
+	                folded = new ICONST(0);
+	            }
+	            else {
+	                folded = new ICONST(1);
+	            }
+	        }
+	        else if (op instanceof DCMPG) {
+	            double alpha = a.doubleValue();
+	            double beta = b.doubleValue();
+	            if (alpha < beta) {
+	                folded = new ICONST(-1);
+	            }
+	            else if (alpha == beta) {
+	                folded = new ICONST(0);
+	            }
+	            else {
+	                folded = new ICONST(1);
+	            }
+	        }
+	        else if (op instanceof DCMPL) {
+	        
+	        }
+	        else if (op instanceof FCMPG) {
+	        
+	        }
+	        else if (op instanceof FCMPL) {
+	        
+	        }
+	        
+	        System.out.println(folded.toString());
+	        match[0].setInstruction(folded);
+	        try {
+	            il.delete(match[1], match[2]);
+	        }
+	        catch (TargetLostException e) {
+	            System.out.println("Target lost");
+	            continue;
+	        }
+	        
+	        counter++;
+	    }
+	}
 
     private int foldNegations(MethodGen m, InstructionList il) {
         ConstantPoolGen cpgen = m.getConstantPool();
