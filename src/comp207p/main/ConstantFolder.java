@@ -236,13 +236,6 @@ public class ConstantFolder
 	            continue;
 	        }
 	        
-	        /*if (v instanceof SIPUSH) {
-	            v = new LDC(cpgen.addInteger((int)value.shortValue()));
-	        }
-	        else if (v instanceof BIPUSH) {
-	            v = new LDC(cpgen.addInteger((int)value.byteValue()));
-	        } */
-	        
 	        if ((s instanceof DSTORE) || (s instanceof FSTORE) || (s instanceof ISTORE) || (s instanceof LSTORE)) {
 	            index = s.getIndex();
 	        }
