@@ -79,6 +79,55 @@ public class ConstantFolder
 	    return m;
 	}
 
+    private int foldNegations(MethodGen m, InstructionList il) {
+        ConstantPoolGen cpgen = m.getConstantPool();
+	    InstructionFinder f = new InstructionFinder(il);
+	    int counter = 0;
+	    
+	    for (Iterator iter = f.search("PushInstruction (DNEG|FNEG|INEG|LNEG)"); iter.hasNext();) {
+	        System.out.println("Match found");
+	        InstructionHandle[] match = (InstructionHandle[]) iter.next();
+	        PushInstruction constant = (PushInstruction)match[0].getInstruction();
+	        Instruction op = match[2].getInstruction();
+	        Number v;
+	        v = getConstant(constant, cpgen);
+	        
+	        if (v == null) {
+	            continue;
+	        }
+	        
+	        System.out.println("New instruction being added");
+	        Instruction folded = null;
+	        if (op instanceof LNEG) {
+	            folded = new LDC2_W(cpgen.addLong(-(v.longValue())));
+	        }
+	        else if (op instanceof INEG) {
+	            folded = new LDC(cpgen.addInteger(-(v.intValue())));
+	        }
+	        else if (op instanceof FNEG) {
+	            folded = new LDC(cpgen.addFloat(-(v.floatValue())));
+	        }
+	        else if (op instanceof DNEG) {
+	            folded = new LDC2_W(cpgen.addDouble(-(v.doubleValue())));
+	        }
+	        else {
+	            continue;
+	        }
+	        System.out.println(folded.toString());
+	        match[0].setInstruction(folded);
+	        try {
+	            il.delete(match[1]);
+	        }
+	        catch (TargetLostException e) {
+	            System.out.println("Target lost");
+	            continue;
+	        }
+	        
+	        counter++;
+	    }
+	    return counter;
+    }
+    
 	private int simpleFolding(MethodGen m, InstructionList il) {
 	    ConstantPoolGen cpgen = m.getConstantPool();
 	    InstructionFinder f = new InstructionFinder(il);
