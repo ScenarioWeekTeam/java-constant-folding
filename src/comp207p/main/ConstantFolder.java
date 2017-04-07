@@ -69,7 +69,8 @@ public class ConstantFolder
 	        optimizations = 0;
 	        optimizations += simpleFolding(mgen, il);
 	        optimizations += propagateConstantVariables(mgen, il);
-	//        optimizations += removePushes(mgen, il);
+	        optimizations += foldNegations(mgen, il);
+	        optimizations += foldConversions(mgen, il);
 	    }
 	    
 	    mgen.setMaxStack();
@@ -88,7 +89,7 @@ public class ConstantFolder
 	        System.out.println("Match found");
 	        InstructionHandle[] match = (InstructionHandle[]) iter.next();
 	        PushInstruction constant = (PushInstruction)match[0].getInstruction();
-	        Instruction op = match[2].getInstruction();
+	        Instruction op = match[1].getInstruction();
 	        Number v;
 	        v = getConstant(constant, cpgen);
 	        
@@ -137,7 +138,7 @@ public class ConstantFolder
 	        System.out.println("Match found");
 	        InstructionHandle[] match = (InstructionHandle[]) iter.next();
 	        PushInstruction value = (PushInstruction)match[0].getInstruction();
-	        ConversionInstruction op = (ConversionInstruction)match[0].getInstruction();
+	        ConversionInstruction op = (ConversionInstruction)match[1].getInstruction();
 	        
 	        Number v = getConstant(value, cpgen);
 	        
