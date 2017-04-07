@@ -178,6 +178,43 @@ public class ConstantFolder
 	        InstructionHandle i = match[1].getNext();
 	        while (i != null ) {
 	            Instruction instruction = i.getInstruction();
+	            int skip = i.getPosition();
+	            if (i.hasTargeters()) {
+	                InstructionTargeter[] targeters = i.getTargeters();
+	                for (InstructionTargeter targeter : targeters) {
+	                    if (targeter instanceof BranchInstruction) {
+	                        BranchInstruction branch = (BranchInstruction)targeter;
+	                        int position = branch.getPosition();
+	                        if (i.getPosition() < position) {
+	                            break;
+	                        }
+	                        InstructionHandle next = i.getNext();
+	                        while (i != null) {
+	                            if (next.getPosition() < position) {
+	                                if (next.getInstruction() instanceof StoreInstruction) {
+	                                    StoreInstruction store = (StoreInstruction)next.getInstruction();
+	                                    if (store.getIndex() == index) {
+	                                        if (next.getPosition() > skip) {
+	                                            skip = next.getPosition();
+	                                            break;
+	                                        }
+	                                    }
+	                                }
+	                            }
+	                        }
+	                    }
+	                    else {
+	                        continue;
+	                    }
+	                }
+	            }
+	            
+	            if (skip > i.getPosition()) {
+	                while (i.getNext().getPosition() < skip) {
+	                    i = i.getNext();
+	                }
+	            }
+	            
 	            if (instruction instanceof LoadInstruction) {
 	                LoadInstruction load = (LoadInstruction)instruction;
 	                if (load.getIndex() == index) {
